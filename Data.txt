@@ -1,0 +1,59 @@
+Apple 150 1000
+
+Banana 80 1500
+
+Milk 50 500
+
+Bread 32 300
+
+Eggs 2.50 200
+
+Oranges 100 1000
+
+Grapes 60 1000
+
+Stawberries 100 1000
+
+Mangoes 100 1000
+
+Watermelon 80 300
+
+Cucumber 40 300
+
+Onion 50 1500
+
+Tomatoes 70 1500
+
+Potatoes 40 1500
+
+Greenchilli 15 2000
+
+Salt 50 1000
+
+Chilli 90 1000
+
+Dal 140 1000
+
+Wheat 55 1500
+
+Haldi 30 1000
+
+Jeera 80 1000
+
+Sugar 45 1000
+
+Toothpaste 120 1000
+
+Soap 175 1000
+
+Oil 120 1000
+
+Maggie 235 1500
+
+Almond 100 1500
+
+Cashew 125 1500
+
+Raisins 125 1500
+
+Shampoo 210 1000

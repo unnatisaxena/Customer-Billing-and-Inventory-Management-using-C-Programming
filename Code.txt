@@ -1,0 +1,406 @@
+#include <stdio.h>
+
+#include <stdlib.h>
+
+#include <string.h>
+
+
+
+#define MAX_ITEMS 100
+
+#define MAX_NAME_LENGTH 50
+
+#define MAX_CUSTOMERS 100
+
+
+
+typedef struct {
+
+    char name[MAX_NAME_LENGTH];
+
+    float price;
+
+    int quantity;
+
+} Item;
+
+
+
+typedef struct {
+
+    char name[MAX_NAME_LENGTH];
+
+    char phone[MAX_NAME_LENGTH];
+
+    float totalBill;
+
+} Customer;
+
+
+
+void loadItems(const char *filename, Item items[], int *itemCount) {
+
+    FILE *file = fopen(filename, "r");
+
+    if (file == NULL) {
+
+        perror("Error opening file");
+
+        exit(1);
+
+    }
+
+
+
+    *itemCount = 0;
+
+    while (fscanf(file, "%s %f %d", items[*itemCount].name, &items[*itemCount].price, &items[*itemCount].quantity) == 3) {
+
+        (*itemCount)++;
+
+        if (*itemCount >= MAX_ITEMS) {
+
+            printf("Reached maximum item limit (%d)\n", MAX_ITEMS);
+
+            break;
+
+        }
+
+    }
+
+
+
+    fclose(file);
+
+}
+
+
+
+void displayItems(const Item items[], int itemCount) {
+
+    printf("Available Items:\n");
+
+    printf("-------------------------------------------------\n");
+
+    printf("%-20s %-10s %-10s\n", "Item Name(in Kg/L/qty)", "Price", "Quantity");
+
+    printf("-------------------------------------------------\n");
+
+    for (int i = 0; i < itemCount; i++) {
+
+        printf("%-20s Rs.%-9.2f %-10d\n", items[i].name, items[i].price, items[i].quantity);
+
+    }
+
+}
+
+
+
+void loadCustomers(const char *filename, Customer customers[], int *customerCount) {
+
+    FILE *file = fopen(filename, "r");
+
+    if (file == NULL) {
+
+        *customerCount = 0;
+
+        return;
+
+    }
+
+
+
+    *customerCount = 0;
+
+    while (fscanf(file, "%s %s %f", customers[*customerCount].name, customers[*customerCount].phone, &customers[*customerCount].totalBill) == 3) {
+
+        (*customerCount)++;
+
+        if (*customerCount >= MAX_CUSTOMERS) {
+
+            printf("Reached maximum customer limit (%d)\n", MAX_CUSTOMERS);
+
+            break;
+
+        }
+
+    }
+
+
+
+    fclose(file);
+
+}
+
+
+
+void saveCustomers(const char *filename, Customer customers[], int customerCount) {
+
+    FILE *file = fopen(filename, "w");
+
+    if (file == NULL) {
+
+        perror("Error opening file");
+
+        exit(1);
+
+    }
+
+
+
+    for (int i = 0; i < customerCount; i++) {
+
+        fprintf(file, "%s %s %.2f\n", customers[i].name, customers[i].phone, customers[i].totalBill);
+
+    }
+
+
+
+    fclose(file);
+
+}
+
+
+
+int findCustomer(Customer customers[], int customerCount, const char *name, const char *phone) {
+
+    for (int i = 0; i < customerCount; i++) {
+
+        if (strcmp(customers[i].name, name) == 0 && strcmp(customers[i].phone, phone) == 0) {
+
+            return i;
+
+        }
+
+    }
+
+    return -1;
+
+}
+
+
+
+void addCustomer(Customer customers[], int *customerCount, const char *name, const char *phone) {
+
+    strcpy(customers[*customerCount].name, name);
+
+    strcpy(customers[*customerCount].phone, phone);
+
+    customers[*customerCount].totalBill = 0.0;
+
+    (*customerCount)++;
+
+}
+
+
+
+void billing(Item items[], int itemCount, Customer customers[], int *customerCount) {
+
+    char customerName[MAX_NAME_LENGTH];
+
+    char customerPhone[MAX_NAME_LENGTH];
+
+    char isNewCustomer;
+
+    int customerIndex;
+
+
+
+    printf("Are you a new customer? (y/n): ");
+
+    scanf(" %c", &isNewCustomer);
+
+
+
+    printf("Enter your name: ");
+
+    scanf("%s", customerName);
+
+    printf("Enter your phone number: ");
+
+    scanf("%s", customerPhone);
+
+
+
+    if (isNewCustomer == 'y' || isNewCustomer == 'Y') {
+
+        addCustomer(customers, customerCount, customerName, customerPhone);
+
+        customerIndex = *customerCount - 1;
+
+    } else {
+
+        customerIndex = findCustomer(customers, *customerCount, customerName, customerPhone);
+
+        if (customerIndex == -1) {
+
+            printf("Customer not found. Please try again.\n");
+
+            return;
+
+        }
+
+    }
+
+
+
+    float previousBill = customers[customerIndex].totalBill;
+
+    float currentBill = 0.0;
+
+    char itemName[MAX_NAME_LENGTH];
+
+    int quantity;
+
+
+
+    while (1) {
+
+        printf("Enter item name (or 'done' to finish): ");
+
+        scanf("%s", itemName);
+
+        if (strcmp(itemName, "done") == 0) {
+
+            break;
+
+        }
+
+        printf("Enter quantity: ");
+
+        scanf("%d", &quantity);
+
+
+
+        int found = 0;
+
+        for (int i = 0; i < itemCount; i++) {
+
+            if (strcmp(items[i].name, itemName) == 0) {
+
+                if (items[i].quantity >= quantity) {
+
+                    currentBill += items[i].price * quantity;
+
+                    items[i].quantity -= quantity;
+
+                } else {
+
+                    printf("Insufficient stock for %s.\n", itemName);
+
+                }
+
+                found = 1;
+
+                break;
+
+            }
+
+        }
+
+        if (!found) {
+
+            printf("Item not found.\n");
+
+        }
+
+    }
+
+
+
+    if (isNewCustomer == 'y' || isNewCustomer == 'Y') {
+
+        if (currentBill > 1000) {
+
+            currentBill *= 0.90; // 10% discount
+
+            printf("You received a 10%% discount!\n");
+
+        }
+
+    } else {
+
+        if (currentBill > 1000) {
+
+            currentBill *= 0.95; // 5% discount
+
+            printf("You received a 5%% discount!\n");
+
+        }
+
+    }
+
+
+
+    customers[customerIndex].totalBill += currentBill;
+
+    
+
+    printf("Previous Bill: Rs.%.2f\n", previousBill);
+
+    printf("Current Bill: Rs.%.2f\n", currentBill);
+
+    printf("Total Bill: Rs.%.2f\n", customers[customerIndex].totalBill);
+
+}
+
+
+
+void displayCustomerBills(Customer customers[], int customerCount) {
+
+    printf("Customer Bills:\n");
+
+    printf("-------------------------------------------------\n");
+
+    printf("%-20s %-15s %-15s\n", "Name", "Phone", "Total Bill");
+
+    printf("-------------------------------------------------\n");
+
+    for (int i = 0; i < customerCount; i++) {
+
+        printf("%-20s %-15s Rs.%.2f\n", customers[i].name, customers[i].phone, customers[i].totalBill);
+
+    }
+
+}
+
+
+
+int main() {
+
+    Item items[MAX_ITEMS];
+
+    Customer customers[MAX_CUSTOMERS];
+
+    int itemCount, customerCount;
+
+
+
+    loadItems("items.txt", items, &itemCount);
+
+    loadCustomers("customers.txt", customers, &customerCount);
+
+
+
+    displayItems(items, itemCount);
+
+    billing(items, itemCount, customers, &customerCount);
+
+
+
+    displayCustomerBills(customers, customerCount);
+
+
+
+    saveCustomers("customers.txt", customers, customerCount);
+
+
+
+    printf("Data updated successfully\n");
+
+
+
+    return 0;
+
+}
+
